@@ -300,6 +300,8 @@ public:
    /*! Read by a worker thread but unchanging during playback */
    bool                mPauseRec;
    float               mSilenceLevel;
+   unsigned long       mSilenceCounterFrames{ 0 };
+   unsigned long       mDelayDurationFrames{ 0 };
    /*! Read by a worker thread but unchanging during playback */
    size_t              mNumCaptureChannels;
    /*! Read by a worker thread but unchanging during playback */

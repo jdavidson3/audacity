@@ -890,6 +890,8 @@ int AudioIO::StartStream(const TransportSequences &sequences,
       // gPrefs->Flush();
    }
    mSilenceLevel = DB_TO_LINEAR(silenceLevelDB);  // meter goes -dBRange dB -> 0dB
+   double delay;
+   gPrefs->Read(wxT("/AudioIO/Delay"), &delay, 0.0);
 
    // Clamp pre-roll so we don't play before time 0
    const auto preRoll = std::max(0.0, std::min(t0, options.preRoll));
@@ -977,6 +979,8 @@ int AudioIO::StartStream(const TransportSequences &sequences,
    mCaptureRate = captureRate;
    successAudio =
       StartPortAudioStream(options, playbackChannels, numCaptureChannels);
+
+   mDelayDurationFrames = (unsigned long)(delay * mCaptureRate);
 
    // Call this only after reassignment of mRate that might happen in the
    // previous call.
@@ -2650,7 +2654,15 @@ void AudioIoCallback::CheckSoundActivatedRecordingLevel(
       }
    }
 
-   bool bShouldBePaused = maxPeak < mSilenceLevel;
+   //bool bShouldBePaused = maxPeak < mSilenceLevel;
+   bool bIsSilentFrame = maxPeak < mSilenceLevel;
+
+   // Update silence counter
+   mSilenceCounterFrames = bIsSilentFrame ? mSilenceCounterFrames + framesPerBuffer : 0;
+
+   // Determine desired pause state
+   bool bShouldBePaused = bIsSilentFrame && (mSilenceCounterFrames >= mDelayDurationFrames);
+
    if( bShouldBePaused != IsPaused() )
    {
       auto pListener = GetListener();

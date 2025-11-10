@@ -133,6 +133,13 @@ void RecordingPrefs::PopulateOrExchange(ShuttleGui & S)
                      -DecibelScaleCutoff.Read());
       }
       S.EndMultiColumn();
+
+      S.StartMultiColumn(3, wxEXPAND);
+         S.NameSuffix(XO("seconds"))
+          .TieNumericTextBox(XXO("Delay:"),
+            { wxT("/AudioIO/Delay"), 0 }, 5);
+         S.AddUnits(XO("seconds"));
+      S.EndMultiColumn();
    }
    S.EndStatic();
 
